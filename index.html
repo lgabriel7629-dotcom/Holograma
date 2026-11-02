@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hologramas</title>
+<style>
+  :root{--ciano:#4fd8ff;--fundo:#050a14;--vidro:rgba(60,170,255,.14);--texto:#e8f8ff}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--fundo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+  video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.55;filter:saturate(.7) hue-rotate(10deg)}
+  .painel{position:fixed;left:0;top:0;width:min(46vw,190px);padding:12px 14px;border-radius:14px;
+    background:var(--vidro);border:1px solid rgba(79,216,255,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    box-shadow:0 0 18px rgba(79,216,255,.35),inset 0 0 22px rgba(79,216,255,.12);cursor:grab;will-change:transform}
+  .painel.pegado{border-color:#fff;box-shadow:0 0 30px rgba(120,230,255,.9),inset 0 0 26px rgba(120,230,255,.25)}
+  .painel h2{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--ciano)}
+  .painel p{margin:0;font-size:22px;font-weight:300;line-height:1.2}
+  .painel small{display:block;margin-top:4px;font-size:12px;opacity:.75}
+  .mao{position:fixed;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--ciano);
+    box-shadow:0 0 14px var(--ciano);pointer-events:none;opacity:0;transition:opacity .2s,width .1s,height .1s,margin .1s,background .1s}
+  .mao.pinca{width:26px;height:26px;margin:-13px 0 0 -13px;background:rgba(79,216,255,.55)}
+  #inicio{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(5,10,20,.85);z-index:10}
+  #inicio h1{margin:0;font-size:26px;font-weight:600}
+  #inicio p{margin:0;max-width:30ch;opacity:.8;line-height:1.4}
+  button{font:inherit;font-weight:600;color:#021018;background:var(--ciano);border:0;border-radius:999px;padding:14px 28px;box-shadow:0 0 20px rgba(79,216,255,.6)}
+  #status{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;opacity:.8;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){.mao{transition:none}}
+</style>
+</head>
+<body>
+<video id="cam" playsinline muted></video>
+
+<div class="painel" data-x="0.06" data-y="0.14"><h2>Relógio</h2><p id="hora">--:--</p><small id="data"></small></div>
+<div class="painel" data-x="0.5" data-y="0.3"><h2>Música</h2><p>Em reprodução</p><small>Pinça para mover</small></div>
+<div class="painel" data-x="0.1" data-y="0.5"><h2>Mensagens</h2><p>3 novas</p><small>Solte onde quiser</small></div>
+<div class="painel" data-x="0.52" data-y="0.62"><h2>Clima</h2><p>24°</p><small>Parcialmente nublado</small></div>
+
+<div class="mao" id="m0"></div>
+<div class="mao" id="m1"></div>
+
+<div id="inicio">
+  <h1>Hologramas com a mão</h1>
+  <p>Aponte a câmera frontal para você. Junte polegar e indicador para pegar um painel e mova a mão para arrastar.</p>
+  <button id="btn">Ativar câmera</button>
+  <p id="erro" style="color:#ff9b9b"></p>
+</div>
+<div id="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<script>
+const W = () => innerWidth, H = () => innerHeight;
+const paineis = [...document.querySelectorAll('.painel')].map(el => {
+  const p = {el, x: parseFloat(el.dataset.x) * W(), y: parseFloat(el.dataset.y) * H(), w: 0, h: 0};
+  return p;
+});
+function medir(){ paineis.forEach(p => { p.w = p.el.offsetWidth; p.h = p.el.offsetHeight; }); }
+function desenhar(p){ p.el.style.transform = `translate(${p.x}px,${p.y}px)`; }
+medir(); paineis.forEach(desenhar);
+addEventListener('resize', medir);
+
+// Relógio
+function relogio(){
+  const d = new Date();
+  document.getElementById('hora').textContent = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('data').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+}
+relogio(); setInterval(relogio, 10000);
+
+// Mantém o painel dentro da tela
+function limitar(p){ p.x = Math.min(Math.max(p.x, 0), W() - p.w); p.y = Math.min(Math.max(p.y, 0), H() - p.h); }
+
+// Arrastar com toque/mouse (funciona sem câmera)
+let toque = null;
+paineis.forEach(p => {
+  p.el.addEventListener('pointerdown', e => {
+    toque = {p, dx: e.clientX - p.x, dy: e.clientY - p.y};
+    p.el.classList.add('pegado'); p.el.setPointerCapture(e.pointerId);
+    document.body.appendChild(p.el);
+  });
+  p.el.addEventListener('pointermove', e => {
+    if (!toque || toque.p !== p) return;
+    p.x = e.clientX - toque.dx; p.y = e.clientY - toque.dy; limitar(p); desenhar(p);
+  });
+  const soltar = () => { if (toque && toque.p === p){ p.el.classList.remove('pegado'); toque = null; } };
+  p.el.addEventListener('pointerup', soltar); p.el.addEventListener('pointercancel', soltar);
+});
+
+// Rastreamento de mãos
+const cam = document.getElementById('cam');
+const status = document.getElementById('status');
+const maos = [{pegou:null,x:0,y:0,pinca:false,visto:0},{pegou:null,x:0,y:0,pinca:false,visto:0}];
+
+function paraTela(lm){
+  const vw = cam.videoWidth, vh = cam.videoHeight;
+  const s = Math.max(W()/vw, H()/vh), dw = vw*s, dh = vh*s;
+  const ox = (W()-dw)/2, oy = (H()-dh)/2;
+  return {x: W() - (ox + lm.x*dw), y: oy + lm.y*dh};
+}
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+
+function aoResultado(res){
+  const agora = performance.now();
+  const lista = res.multiHandLandmarks || [];
+  lista.forEach((lm, i) => {
+    const m = maos[i]; if (!m) return;
+    const tamanho = dist(lm[0], lm[9]) || 1;
+    const razao = dist(lm[4], lm[8]) / tamanho;
+    const ponto = paraTela({x:(lm[4].x+lm[8].x)/2, y:(lm[4].y+lm[8].y)/2});
+    // suaviza o movimento
+    m.x = m.visto ? m.x + (ponto.x - m.x)*0.5 : ponto.x;
+    m.y = m.visto ? m.y + (ponto.y - m.y)*0.5 : ponto.y;
+    m.visto = agora;
+    const antes = m.pinca;
+    m.pinca = antes ? razao < 0.45 : razao < 0.28;
+    const marca = document.getElementById('m'+i);
+    marca.style.opacity = 1;
+    marca.style.transform = `translate(${m.x}px,${m.y}px)`;
+    marca.classList.toggle('pinca', m.pinca);
+
+    if (m.pinca && !antes){
+      for (let k = paineis.length-1; k >= 0; k--){
+        const p = paineis[k];
+        const livre = !maos.some(o => o.pegou === p);
+        const sobre = m.x > p.x-20 && m.x < p.x+p.w+20 && m.y > p.y-20 && m.y < p.y+p.h+20;
+        if (livre && sobre){ m.pegou = {p, dx:m.x-p.x, dy:m.y-p.y}; p.el.classList.add('pegado'); document.body.appendChild(p.el); break; }
+      }
+    }
+    if (m.pinca && m.pegou){
+      const p = m.pegou.p; p.x = m.x - m.pegou.dx; p.y = m.y - m.pegou.dy; limitar(p); desenhar(p);
+    }
+    if (!m.pinca && m.pegou){ m.pegou.p.el.classList.remove('pegado'); m.pegou = null; }
+  });
+  maos.forEach((m,i) => {
+    if (m.visto && agora - m.visto > 250){
+      document.getElementById('m'+i).style.opacity = 0;
+      if (m.pegou){ m.pegou.p.el.classList.remove('pegado'); m.pegou = null; }
+      m.pinca = false; m.visto = 0;
+    }
+  });
+  status.textContent = lista.length ? '' : 'Mostre a mão para a câmera';
+}
+
+document.getElementById('btn').onclick = async () => {
+  const erro = document.getElementById('erro');
+  erro.textContent = '';
+  try {
+    if (!navigator.mediaDevices) throw new Error('Abra esta página por HTTPS para usar a câmera.');
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:{ideal:640}, height:{ideal:480}}, audio:false});
+    cam.srcObject = stream; await cam.play();
+    document.getElementById('inicio').style.display = 'none';
+    status.textContent = 'Carregando rastreamento…';
+    const hands = new Hands({locateFile: f => 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + f});
+    hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:0.6, minTrackingConfidence:0.5});
+    hands.onResults(aoResultado);
+    let ocupado = false;
+    const laco = async () => {
+      if (!ocupado && cam.readyState >= 2){ ocupado = true; try { await hands.send({image: cam}); } catch(e){} ocupado = false; }
+      requestAnimationFrame(laco);
+    };
+    laco();
+  } catch (e) {
+    erro.textContent = 'Não foi possível iniciar: ' + (e.message || e) + ' Você ainda pode arrastar os painéis com o dedo.';
+    document.getElementById('btn').textContent = 'Tentar de novo';
+  }
+};
+</script>
+</body>
+</html>
