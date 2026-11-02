@@ -5,43 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hologramas</title>
 <style>
-  :root{--ciano:#4fd8ff;--fundo:#050a14;--vidro:rgba(60,170,255,.14);--texto:#e8f8ff}
+  :root{--ciano:#4fd8ff;--fundo:#050a14;--vidro:rgba(60,170,255,.16);--texto:#e8f8ff}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--fundo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
-  video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.55;filter:saturate(.7) hue-rotate(10deg)}
-  .painel{position:fixed;left:0;top:0;width:min(46vw,190px);padding:12px 14px;border-radius:14px;
-    background:var(--vidro);border:1px solid rgba(79,216,255,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    box-shadow:0 0 18px rgba(79,216,255,.35),inset 0 0 22px rgba(79,216,255,.12);cursor:grab;will-change:transform}
+  video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.5;filter:saturate(.7) hue-rotate(10deg)}
+  .painel{position:fixed;left:0;top:0;padding:12px 14px;border-radius:14px;background:var(--vidro);border:1px solid rgba(79,216,255,.7);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 0 18px rgba(79,216,255,.35),inset 0 0 22px rgba(79,216,255,.12);cursor:grab;will-change:transform}
+  .p-peq{width:min(44vw,170px)} .p-grd{width:min(80vw,300px)}
   .painel.pegado{border-color:#fff;box-shadow:0 0 30px rgba(120,230,255,.9),inset 0 0 26px rgba(120,230,255,.25)}
-  .painel h2{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--ciano)}
-  .painel p{margin:0;font-size:22px;font-weight:300;line-height:1.2}
-  .painel small{display:block;margin-top:4px;font-size:12px;opacity:.75}
-  .mao{position:fixed;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--ciano);
-    box-shadow:0 0 14px var(--ciano);pointer-events:none;opacity:0;transition:opacity .2s,width .1s,height .1s,margin .1s,background .1s}
+  .painel.alarme{animation:pisca .5s steps(2) infinite}
+  @keyframes pisca{50%{background:rgba(255,140,120,.4);border-color:#ff9b8a}}
+  h2{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--ciano)}
+  .grande{margin:0;font-size:34px;font-weight:300;line-height:1.1;text-align:center;font-variant-numeric:tabular-nums}
+  .hora{margin:0;font-size:24px;font-weight:300} small{display:block;margin-top:4px;font-size:12px;opacity:.75}
+  .linha{display:flex;gap:8px;margin-top:8px}
+  button,input,textarea{font:inherit;color:var(--texto)}
+  button{flex:1;min-height:42px;padding:8px 10px;border-radius:10px;border:1px solid rgba(79,216,255,.7);background:rgba(79,216,255,.18);font-size:14px;font-weight:600}
+  button:active{background:rgba(79,216,255,.5)}
+  button.x{flex:0 0 42px;padding:0;font-size:18px;border-color:transparent;background:none}
+  textarea,input[type=text]{width:100%;min-height:42px;padding:8px 10px;border-radius:10px;border:1px solid rgba(79,216,255,.5);background:rgba(2,16,24,.55);font-size:15px;-webkit-user-select:text;user-select:text}
+  textarea{height:96px;resize:none}
+  input[type=text]{flex:1;min-width:0}
+  ul{list-style:none;margin:8px 0 0;padding:0;max-height:26vh;overflow:auto}
+  li{display:flex;align-items:center;gap:4px}
+  li label{flex:1;display:flex;align-items:center;gap:10px;min-height:42px;font-size:15px}
+  li input{width:20px;height:20px;accent-color:var(--ciano)}
+  li.ok span{text-decoration:line-through;opacity:.5}
+  .mao{position:fixed;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--ciano);box-shadow:0 0 14px var(--ciano);pointer-events:none;opacity:0;z-index:50;transition:opacity .2s,width .1s,height .1s,margin .1s,background .1s}
   .mao.pinca{width:26px;height:26px;margin:-13px 0 0 -13px;background:rgba(79,216,255,.55)}
-  #inicio{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(5,10,20,.85);z-index:10}
-  #inicio h1{margin:0;font-size:26px;font-weight:600}
-  #inicio p{margin:0;max-width:30ch;opacity:.8;line-height:1.4}
-  button{font:inherit;font-weight:600;color:#021018;background:var(--ciano);border:0;border-radius:999px;padding:14px 28px;box-shadow:0 0 20px rgba(79,216,255,.6)}
-  #status{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;opacity:.8;pointer-events:none}
-  @media (prefers-reduced-motion:reduce){.mao{transition:none}}
+  #inicio{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(5,10,20,.88);z-index:100}
+  #inicio h1{margin:0;font-size:26px;font-weight:600} #inicio p{margin:0;max-width:32ch;opacity:.85;line-height:1.4}
+  #inicio button{flex:none;color:#021018;background:var(--ciano);padding:14px 28px;border-radius:999px;box-shadow:0 0 20px rgba(79,216,255,.6)}
+  #inicio #pular{background:none;color:var(--texto);box-shadow:none;border-color:rgba(255,255,255,.4)}
+  #status{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;opacity:.8;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){.mao{transition:none}.painel.alarme{animation:none;background:rgba(255,140,120,.4)}}
 </style>
 </head>
 <body>
 <video id="cam" playsinline muted></video>
 
-<div class="painel" data-x="0.06" data-y="0.14"><h2>Relógio</h2><p id="hora">--:--</p><small id="data"></small></div>
-<div class="painel" data-x="0.5" data-y="0.3"><h2>Música</h2><p>Em reprodução</p><small>Pinça para mover</small></div>
-<div class="painel" data-x="0.1" data-y="0.5"><h2>Mensagens</h2><p>3 novas</p><small>Solte onde quiser</small></div>
-<div class="painel" data-x="0.52" data-y="0.62"><h2>Clima</h2><p>24°</p><small>Parcialmente nublado</small></div>
+<div class="painel p-peq" data-x=".05" data-y=".06"><h2>Relógio</h2><p class="hora" id="hora">--:--</p><small id="data"></small></div>
 
-<div class="mao" id="m0"></div>
-<div class="mao" id="m1"></div>
+<div class="painel p-grd" data-x=".08" data-y=".2"><h2>Notas</h2>
+  <textarea id="nota" placeholder="Escreva aqui. Fica salvo neste celular."></textarea></div>
+
+<div class="painel p-grd" id="pTimer" data-x=".12" data-y=".44"><h2>Timer</h2>
+  <p class="grande" id="tempo">05:00</p>
+  <div class="linha"><button data-a="menos">−1 min</button><button data-a="mais">+1 min</button></div>
+  <div class="linha"><button id="tIni" data-a="iniciar">Iniciar</button><button data-a="zerar">Zerar</button></div></div>
+
+<div class="painel p-grd" data-x=".06" data-y=".66"><h2>Tarefas</h2>
+  <div class="linha" style="margin-top:0"><input type="text" id="novaT" placeholder="Nova tarefa"><button id="addT" style="flex:0 0 auto">Adicionar</button></div>
+  <ul id="lista"></ul></div>
+
+<div class="mao" id="m0"></div><div class="mao" id="m1"></div>
 
 <div id="inicio">
   <h1>Hologramas com a mão</h1>
-  <p>Aponte a câmera frontal para você. Junte polegar e indicador para pegar um painel e mova a mão para arrastar.</p>
+  <p>Junte polegar e indicador sobre um botão para tocar nele. Junte sobre uma área vazia do painel e mova a mão para arrastar.</p>
   <button id="btn">Ativar câmera</button>
+  <button id="pular">Usar sem câmera</button>
   <p id="erro" style="color:#ff9b9b"></p>
 </div>
 <div id="status"></div>
@@ -49,118 +72,165 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
 <script>
 const W = () => innerWidth, H = () => innerHeight;
-const paineis = [...document.querySelectorAll('.painel')].map(el => {
-  const p = {el, x: parseFloat(el.dataset.x) * W(), y: parseFloat(el.dataset.y) * H(), w: 0, h: 0};
-  return p;
+const guardar = (k,v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const ler = (k,f) => { try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; }catch(e){ return f; } };
+
+/* ---------- Painéis e arrastar ---------- */
+const posSalva = ler('holo-pos', {});
+const paineis = [...document.querySelectorAll('.painel')].map((el,i) => {
+  const s = posSalva[i];
+  const p = {el, i, x: s ? s.x : parseFloat(el.dataset.x)*W(), y: s ? s.y : parseFloat(el.dataset.y)*H(), w:0, h:0};
+  el.__p = p; return p;
 });
-function medir(){ paineis.forEach(p => { p.w = p.el.offsetWidth; p.h = p.el.offsetHeight; }); }
-function desenhar(p){ p.el.style.transform = `translate(${p.x}px,${p.y}px)`; }
-medir(); paineis.forEach(desenhar);
-addEventListener('resize', medir);
+const desenhar = p => p.el.style.transform = `translate(${p.x}px,${p.y}px)`;
+const limitar = p => { p.w = p.el.offsetWidth; p.h = p.el.offsetHeight; p.x = Math.min(Math.max(p.x,0), Math.max(0,W()-p.w)); p.y = Math.min(Math.max(p.y,0), Math.max(0,H()-p.h)); };
+const salvarPos = () => guardar('holo-pos', Object.fromEntries(paineis.map(p => [p.i,{x:p.x,y:p.y}])));
+paineis.forEach(p => { limitar(p); desenhar(p); });
+addEventListener('resize', () => paineis.forEach(p => { limitar(p); desenhar(p); }));
 
-// Relógio
-function relogio(){
-  const d = new Date();
-  document.getElementById('hora').textContent = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('data').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-}
-relogio(); setInterval(relogio, 10000);
-
-// Mantém o painel dentro da tela
-function limitar(p){ p.x = Math.min(Math.max(p.x, 0), W() - p.w); p.y = Math.min(Math.max(p.y, 0), H() - p.h); }
-
-// Arrastar com toque/mouse (funciona sem câmera)
+const INTERATIVO = 'button,textarea,input,label';
 let toque = null;
 paineis.forEach(p => {
   p.el.addEventListener('pointerdown', e => {
-    toque = {p, dx: e.clientX - p.x, dy: e.clientY - p.y};
-    p.el.classList.add('pegado'); p.el.setPointerCapture(e.pointerId);
-    document.body.appendChild(p.el);
+    if (e.target.closest(INTERATIVO)) return;
+    toque = {dx:e.clientX-p.x, dy:e.clientY-p.y}; p.el.classList.add('pegado'); p.el.setPointerCapture(e.pointerId); document.body.appendChild(p.el);
   });
-  p.el.addEventListener('pointermove', e => {
-    if (!toque || toque.p !== p) return;
-    p.x = e.clientX - toque.dx; p.y = e.clientY - toque.dy; limitar(p); desenhar(p);
-  });
-  const soltar = () => { if (toque && toque.p === p){ p.el.classList.remove('pegado'); toque = null; } };
-  p.el.addEventListener('pointerup', soltar); p.el.addEventListener('pointercancel', soltar);
+  p.el.addEventListener('pointermove', e => { if(!toque) return; p.x = e.clientX-toque.dx; p.y = e.clientY-toque.dy; limitar(p); desenhar(p); });
+  const fim = () => { if(toque){ toque = null; p.el.classList.remove('pegado'); salvarPos(); } };
+  p.el.addEventListener('pointerup', fim); p.el.addEventListener('pointercancel', fim);
 });
 
-// Rastreamento de mãos
-const cam = document.getElementById('cam');
-const status = document.getElementById('status');
-const maos = [{pegou:null,x:0,y:0,pinca:false,visto:0},{pegou:null,x:0,y:0,pinca:false,visto:0}];
-
-function paraTela(lm){
-  const vw = cam.videoWidth, vh = cam.videoHeight;
-  const s = Math.max(W()/vw, H()/vh), dw = vw*s, dh = vh*s;
-  const ox = (W()-dw)/2, oy = (H()-dh)/2;
-  return {x: W() - (ox + lm.x*dw), y: oy + lm.y*dh};
+/* ---------- Relógio ---------- */
+function relogio(){
+  const d = new Date();
+  hora.textContent = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  data.textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
 }
-const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+relogio(); setInterval(relogio, 10000);
 
+/* ---------- Notas ---------- */
+nota.value = ler('holo-nota','');
+nota.addEventListener('input', () => guardar('holo-nota', nota.value));
+
+/* ---------- Tarefas ---------- */
+let tarefas = ler('holo-tarefas', []);
+function listar(){
+  lista.innerHTML = '';
+  tarefas.forEach((t,i) => {
+    const li = document.createElement('li'); if (t.ok) li.className = 'ok';
+    const lb = document.createElement('label');
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = t.ok;
+    cb.onchange = () => { tarefas[i].ok = cb.checked; guardar('holo-tarefas', tarefas); listar(); };
+    const sp = document.createElement('span'); sp.textContent = t.txt;
+    lb.append(cb, sp);
+    const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.setAttribute('aria-label','Remover tarefa');
+    x.onclick = () => { tarefas.splice(i,1); guardar('holo-tarefas', tarefas); listar(); };
+    li.append(lb, x); lista.append(li);
+  });
+  const p = document.getElementById('lista').closest('.painel').__p; limitar(p); desenhar(p);
+}
+function adicionar(){ const v = novaT.value.trim(); if(!v) return; tarefas.push({txt:v, ok:false}); novaT.value = ''; guardar('holo-tarefas', tarefas); listar(); }
+addT.onclick = adicionar; novaT.addEventListener('keydown', e => { if(e.key === 'Enter') adicionar(); });
+listar();
+
+/* ---------- Timer ---------- */
+let total = 300, restante = 300, rodando = false, fim = 0, audio = null;
+const fmt = s => String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+function bip(){
+  try{
+    audio = audio || new (window.AudioContext||window.webkitAudioContext)();
+    [0,.25,.5].forEach(t => { const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = 880; g.gain.value = .15;
+      o.connect(g); g.connect(audio.destination); o.start(audio.currentTime+t); o.stop(audio.currentTime+t+.15); });
+  }catch(e){}
+  if (navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
+}
+function atualizaTimer(){ tempo.textContent = fmt(restante); tIni.textContent = rodando ? 'Pausar' : 'Iniciar'; }
+pTimer.addEventListener('click', e => {
+  const a = e.target.closest('button')?.dataset.a; if(!a) return;
+  pTimer.classList.remove('alarme');
+  if (a === 'mais' && !rodando){ total += 60; restante = total; }
+  if (a === 'menos' && !rodando){ total = Math.max(60, total-60); restante = total; }
+  if (a === 'zerar'){ rodando = false; restante = total; }
+  if (a === 'iniciar'){
+    if (rodando){ rodando = false; }
+    else { if (restante <= 0) restante = total; fim = Date.now() + restante*1000; rodando = true; try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume(); }catch(e){} }
+  }
+  atualizaTimer();
+});
+setInterval(() => {
+  if (!rodando) return;
+  restante = Math.max(0, Math.ceil((fim-Date.now())/1000));
+  if (restante === 0){ rodando = false; pTimer.classList.add('alarme'); bip(); }
+  atualizaTimer();
+}, 250);
+atualizaTimer();
+
+/* ---------- Rastreamento de mãos ---------- */
+const cam = document.getElementById('cam');
+const maos = [0,1].map(() => ({pegou:null, cand:null, ini:null, t0:0, x:0, y:0, pinca:false, visto:0}));
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+function paraTela(lm){
+  const vw = cam.videoWidth, vh = cam.videoHeight, s = Math.max(W()/vw, H()/vh), dw = vw*s, dh = vh*s;
+  return {x: W() - ((W()-dw)/2 + lm.x*dw), y: (H()-dh)/2 + lm.y*dh};
+}
+function ativar(el){
+  if (el.matches('textarea,input[type=text]')) el.focus(); else el.click();
+}
+function soltar(m){
+  if (m.pegou){ m.pegou.classList.remove('pegado'); salvarPos(); m.pegou = null; }
+  m.cand = null;
+}
 function aoResultado(res){
-  const agora = performance.now();
-  const lista = res.multiHandLandmarks || [];
-  lista.forEach((lm, i) => {
-    const m = maos[i]; if (!m) return;
-    const tamanho = dist(lm[0], lm[9]) || 1;
-    const razao = dist(lm[4], lm[8]) / tamanho;
-    const ponto = paraTela({x:(lm[4].x+lm[8].x)/2, y:(lm[4].y+lm[8].y)/2});
-    // suaviza o movimento
-    m.x = m.visto ? m.x + (ponto.x - m.x)*0.5 : ponto.x;
-    m.y = m.visto ? m.y + (ponto.y - m.y)*0.5 : ponto.y;
-    m.visto = agora;
-    const antes = m.pinca;
-    m.pinca = antes ? razao < 0.45 : razao < 0.28;
+  const agora = performance.now(), lista = res.multiHandLandmarks || [];
+  lista.forEach((lm,i) => {
+    const m = maos[i]; if(!m) return;
+    const razao = dist(lm[4],lm[8]) / (dist(lm[0],lm[9]) || 1);
+    const pt = paraTela({x:(lm[4].x+lm[8].x)/2, y:(lm[4].y+lm[8].y)/2});
+    m.x = m.visto ? m.x+(pt.x-m.x)*.5 : pt.x; m.y = m.visto ? m.y+(pt.y-m.y)*.5 : pt.y; m.visto = agora;
+    const antes = m.pinca; m.pinca = antes ? razao < .45 : razao < .28;
     const marca = document.getElementById('m'+i);
-    marca.style.opacity = 1;
-    marca.style.transform = `translate(${m.x}px,${m.y}px)`;
-    marca.classList.toggle('pinca', m.pinca);
+    marca.style.opacity = 1; marca.style.transform = `translate(${m.x}px,${m.y}px)`; marca.classList.toggle('pinca', m.pinca);
 
     if (m.pinca && !antes){
-      for (let k = paineis.length-1; k >= 0; k--){
-        const p = paineis[k];
-        const livre = !maos.some(o => o.pegou === p);
-        const sobre = m.x > p.x-20 && m.x < p.x+p.w+20 && m.y > p.y-20 && m.y < p.y+p.h+20;
-        if (livre && sobre){ m.pegou = {p, dx:m.x-p.x, dy:m.y-p.y}; p.el.classList.add('pegado'); document.body.appendChild(p.el); break; }
+      const alvo = document.elementFromPoint(m.x, m.y);
+      const painel = alvo && alvo.closest('.painel');
+      if (painel && !maos.some(o => o.pegou === painel)){
+        const p = painel.__p;
+        m.pegou = painel; m.off = {dx:m.x-p.x, dy:m.y-p.y}; m.ini = {x:m.x, y:m.y};
+        m.cand = alvo.closest(INTERATIVO); painel.classList.add('pegado'); document.body.appendChild(painel);
       }
     }
     if (m.pinca && m.pegou){
-      const p = m.pegou.p; p.x = m.x - m.pegou.dx; p.y = m.y - m.pegou.dy; limitar(p); desenhar(p);
+      if (m.cand && dist(m, m.ini) > 28) m.cand = null;   // virou arraste
+      if (!m.cand){ const p = m.pegou.__p; p.x = m.x-m.off.dx; p.y = m.y-m.off.dy; limitar(p); desenhar(p); }
     }
-    if (!m.pinca && m.pegou){ m.pegou.p.el.classList.remove('pegado'); m.pegou = null; }
-  });
-  maos.forEach((m,i) => {
-    if (m.visto && agora - m.visto > 250){
-      document.getElementById('m'+i).style.opacity = 0;
-      if (m.pegou){ m.pegou.p.el.classList.remove('pegado'); m.pegou = null; }
-      m.pinca = false; m.visto = 0;
+    if (!m.pinca && antes){
+      const c = m.cand; m.cand = null; soltar(m); if (c) ativar(c);
     }
   });
+  maos.forEach((m,i) => { if (m.visto && agora-m.visto > 250){ document.getElementById('m'+i).style.opacity = 0; soltar(m); m.pinca = false; m.visto = 0; } });
   status.textContent = lista.length ? '' : 'Mostre a mão para a câmera';
 }
 
-document.getElementById('btn').onclick = async () => {
-  const erro = document.getElementById('erro');
+document.getElementById('pular').onclick = () => { inicio.style.display = 'none'; };
+btn.onclick = async () => {
   erro.textContent = '';
-  try {
+  try{
     if (!navigator.mediaDevices) throw new Error('Abra esta página por HTTPS para usar a câmera.');
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:{ideal:640}, height:{ideal:480}}, audio:false});
-    cam.srcObject = stream; await cam.play();
-    document.getElementById('inicio').style.display = 'none';
-    status.textContent = 'Carregando rastreamento…';
+    cam.srcObject = stream; await cam.play(); inicio.style.display = 'none'; status.textContent = 'Carregando rastreamento…';
     const hands = new Hands({locateFile: f => 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + f});
-    hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:0.6, minTrackingConfidence:0.5});
+    hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:.6, minTrackingConfidence:.5});
     hands.onResults(aoResultado);
     let ocupado = false;
     const laco = async () => {
-      if (!ocupado && cam.readyState >= 2){ ocupado = true; try { await hands.send({image: cam}); } catch(e){} ocupado = false; }
+      if (!ocupado && cam.readyState >= 2){ ocupado = true; try{ await hands.send({image:cam}); }catch(e){} ocupado = false; }
       requestAnimationFrame(laco);
     };
     laco();
-  } catch (e) {
-    erro.textContent = 'Não foi possível iniciar: ' + (e.message || e) + ' Você ainda pode arrastar os painéis com o dedo.';
-    document.getElementById('btn').textContent = 'Tentar de novo';
+  }catch(e){
+    erro.textContent = 'Não foi possível iniciar: ' + (e.message||e) + ' Você pode usar sem câmera.';
+    btn.textContent = 'Tentar de novo';
   }
 };
 </script>
